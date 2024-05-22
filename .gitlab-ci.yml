@@ -1,0 +1,104 @@
+stages:
+  - build
+  # - migration
+  # - test
+  - deploy
+
+
+.run_docker_container_script: &run_docker_container_script
+  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+  - export VERSION=$(grep -Eo '\[\d+\.\d+\.\d+\]|\[stable\]|\[latest\]' CHANGELOG.md | sed -E 's/\[|\]//g' | tail -1)
+  - export TAG_LATEST="$CI_REGISTRY_IMAGE:$VERSION"
+  - echo "TAG_LATEST is $TAG_LATEST"
+  - docker pull $TAG_LATEST
+  - docker container rm -f $CONTAINER_NAME || true
+  - cat $ENVIROMENT_VARIABLES >> .env
+  - docker run -d -p 8000:8000 --env-file .env --mount source=storage,target=/app/storage --name $CONTAINER_NAME $TAG_LATEST
+
+variables:
+  TAG_LATEST: "$CI_REGISTRY_IMAGE:$VERSION"
+  DOCKER_TLS_CERTDIR: ""
+  STABLE_VERSION: "$CI_REGISTRY_IMAGE:stable"
+
+build_image:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  rules:
+    - if: $CI_COMMIT_BRANCH == "test" && $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    - export VERSION=$(grep -Eo '\[\d+\.\d+\.\d+\]|\[stable\]|\[latest\]' CHANGELOG.md | sed -E 's/\[|\]//g' | tail -1)
+    - echo "Bumping version to $VERSION"
+    - export TAG_LATEST="$CI_REGISTRY_IMAGE:$VERSION"
+    - docker build -t $TAG_LATEST .
+    - echo "Building  and pushing backend image..."
+    - docker push $TAG_LATEST
+  tags:
+    - test
+
+# update_database:
+#   stage: migration
+#   script:
+#     - alembic revision --autogenerate -m '$CI_COMMIT_SHA'
+#     - alembic upgrade head
+#   only:
+#     - test
+#     - pushes
+
+#run_test:
+#  stage: test
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == "test" && $CI_PIPELINE_SOURCE == "push"
+#  script:
+#    - docker build -f Dockerfile-test -t $TAG_LATEST .
+#    - echo "Building test container and run all tests..."
+#    - cat $TEST_ENVIROMENT_VARIABLES >> .env
+#    - docker run --env-file .env --name test-container $TAG_LATEST pytest
+#  tags:
+#    - test
+#  when: manual
+#  allow_failure: true
+
+deploy_test:
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "test" && $CI_PIPELINE_SOURCE == "push"
+  when: manual
+  script:
+    - export CONTAINER_NAME="test.backend"
+    - export ENVIROMENT_VARIABLES=$TEST_ENVIROMENT_VARIABLES
+    - *run_docker_container_script
+  tags:
+    - test
+
+deploy-dev:
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"
+  when: manual
+  script:
+    - export CONTAINER_NAME="dev.backend"
+    - export ENVIROMENT_VARIABLES=$DEV_ENVIROMENT_VARIABLES
+    - *run_docker_container_script
+  tags:
+    - dev
+
+deploy_production:
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"
+  when: manual
+  script:
+    - export VERSION=$(grep -Eo '## \[\d+\.\d+\.\d+\]|\## \[stable\]|\## \[latest\]' CHANGELOG.md | sed -E 's/\[|\]//g' | tail -1)
+    - export TAG_LATEST="$CI_REGISTRY_IMAGE:$VERSION"
+    - export CONTAINER_NAME="prod.backend"
+    - export ENVIROMENT_VARIABLES=$PROD_ENVIROMENT_VARIABLES
+    - *run_docker_container_script
+    - docker tag $TAG_LATEST $STABLE_VERSION
+    - docker push $STABLE_VERSION
+  tags:
+    - production

@@ -1,0 +1,29 @@
+version: '3.7'
+
+services:
+  backend:
+    container_name: ${COMPOSE_PROJECT_NAME}.backend
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${CI_REGISTRY_IMAGE}:backend-image
+    entrypoint: /app/docker/backend/asgi-entrypoint.sh
+    volumes:
+      - type: bind
+        source: ./logs/
+        target: /app/logs/
+      - storage:/app/storage
+    networks:
+      - dockernet
+    env_file:
+      - .env
+
+networks:
+  dockernet:
+    external:
+      name: dockernet
+
+volumes:
+  storage:
+    external: true

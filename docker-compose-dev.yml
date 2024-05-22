@@ -1,0 +1,45 @@
+version: '3.7'
+
+services:
+  db:
+    container_name: itfits_db_local
+    image: postgres:16.2-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql@16/data/
+    networks:
+      - my-network
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+
+  backend:
+    container_name: ${COMPOSE_PROJECT_NAME}.backend
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    entrypoint: /app/docker/backend/test-entrypoint.sh
+    ports:
+      - 8000:8000
+    networks:
+      - my-network
+    volumes:
+      - type: bind
+        source: ./logs/
+        target: /app/logs/
+      - type: bind
+        source: ./storage/
+        target: /app/storage/
+    env_file:
+        - .env
+    depends_on:
+      - db
+
+
+volumes:
+  postgres_data:
+
+networks:
+  my-network:
+    external: true

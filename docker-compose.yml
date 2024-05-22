@@ -1,0 +1,30 @@
+version: '3.7'
+
+services:
+  backend:
+    container_name: ${COMPOSE_PROJECT_NAME}.itfits-backend
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: /app/docker/backend/asgi-entrypoint.sh
+    ports:
+      - 8000:8000
+    networks:
+      - dockernet
+    volumes:
+      - type: bind
+        source: ./logs/
+        target: /app/logs/
+      - storage:/app/storage
+    env_file:
+      - .env
+
+networks:
+  dockernet:
+    external:
+      name: dockernet
+
+volumes:
+  storage:
+    external: true
