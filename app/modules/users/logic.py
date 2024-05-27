@@ -75,53 +75,12 @@ async def update_user_data(
     await session.execute(queryset)
 
 
-# # async def add_user_to_room_and_group(
-#     session: AsyncSession,
-#     user_id: uuid.UUID,
-#     room_id: uuid.UUID,
-#     group_id: Optional[uuid.UUID] = None,
-# ):
-    # if group_id:
-    #     user_group = UserGroupRoom(
-    #         user_id=user_id,
-    #         group_id=group_id,
-    #         room_id=room_id
-    #     )
-    #     session.add(user_group)
-    # await create_user_group_room_object(
-    #     session=session, room_id=room_id, user_id=user_id, group_id=group_id
-    # )
-
-
-# async def get_permission_data_from_user_filter_by_room_id(
-#     user_id: uuid.UUID,
-#     room_id: uuid.UUID,
-#     session: AsyncSession,
-# ):
-#     user_permission = await User.get_user_permission_list_by_current_user_id(
-#         session=session,
-#         current_user_id=user_id,
-#         room_id=room_id,
-#     )
-#     permission_room_entity = (
-#         await Permission.get_permissions_type_by_permission_subject_entity_type(
-#             session=session,
-#             permission_subject_entity_type="room",
-#         )
-#     )
-#     result_permissions = change_response_permission_for_user(
-#         permission_room_entity, user_permission
-#     )
-#     return result_permissions
-
-
 def change_response_permission_for_user(first_lst, second_lst):
     if second_lst is not None:
         result = {key: key in second_lst[0] for key in first_lst}
     else:
         result = {key: False for key in first_lst}
     return result
-
 
 
 async def create_user_fingerprint_logic(
@@ -160,73 +119,6 @@ async def create_user_fingerprint_logic(
     return fingerprint
 
 
-# async def check_invite_expiration_time_of_user_and_create_user_object(
-#     session: AsyncSession,
-#     user: schemas.UserBase,
-# ):
-    # queryset = select(Invite.created_at).where(Invite.email == user.email)
-    # invite_result = (await session.execute(queryset)).scalar()
-    # current_time = datetime.now()
-    # if invite_result is not None:
-    #     time_difference = current_time - invite_result
-
-        # if time_difference > timedelta(hours=72):
-        #     return JSONResponse(
-        #         content={
-        #             "message": "Invite has expired",
-        #             "success": False,
-        #         },
-        #         status_code=400,
-        #     )
-
-    # user_data = await create_user(session, user)
-    # link = f"{settings.INVITE_PROTOCOL}://{settings.INVITE_DOMAIN}/users/register/accept/{user_data.id}"
-    # await email_sender(
-    #     email=user.email,
-    #     subject="Подтверждение регистрации",
-    #     body_text=f"""
-    #         \nУважаемый {user.email},
-    #         \nДля завершения регистрации в системе It-Fits перейдите по ссылке: {link}
-    #         \nС уважением, команда It-Fits
-    #         """,
-    #     body_type="text",
-    # )
-    # if user.invite_type == "master":
-    #     create_room_data = RoomCreate()  # type: ignore
-    #     await create_room(session, create_room_data, user_data)
-    # elif user.room_id is not None:
-    #     await add_user_to_room_and_group(
-    #         session,
-    #         user_data.id,
-    #         user.room_id,
-    #         user.group_id,
-    #     )
-    # return {
-    #     "status": "True",
-    #     "data": schemas.UserOut(
-    #         id=user_data.id,
-    #         email=user_data.email,
-    #     ),
-    # }
-
-
-# async def get_users_by_room_id_and_group_id(
-#     session,
-#     room_id: uuid.UUID,
-#     group_id: uuid.UUID,
-# ):
-#     queryset = select(User).join(
-#         UserGroupRoom,
-#         and_(
-#             UserGroupRoom.user_id == User.id,
-#             UserGroupRoom.room_id == room_id,
-#             UserGroupRoom.group_id == group_id,
-#         ),
-#     )
-#     result = await session.execute(queryset)
-#     return result.scalars().all()
-
-
 async def user_activate_logic(
     session: AsyncSession,
     user_id: uuid.UUID,
@@ -260,7 +152,6 @@ async def send_restore_password_email_logic(
             \nЕсли Вы не запрашивали восстановление пароля для входа на сайт: Athena.VDR {settings.INVITE_PROTOCOL}://{settings.INVITE_DOMAIN}/login игнорируйте данное письмо.
             \nС уважением, команда Athena.VDR
             """,
-        body_type="text",
     )
 
 

@@ -1,6 +1,18 @@
 version: '3.7'
 
 services:
+  db:
+    container_name: itfits_db_local
+    image: postgres:16.2-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql@16/data/
+    networks:
+      - dockernet
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+
   backend:
     container_name: ${COMPOSE_PROJECT_NAME}.itfits-backend
     restart: unless-stopped
@@ -19,6 +31,8 @@ services:
       - storage:/app/storage
     env_file:
       - .env
+    depends_on:
+      - db
 
 networks:
   dockernet:
@@ -28,3 +42,4 @@ networks:
 volumes:
   storage:
     external: true
+  postgres_data:
