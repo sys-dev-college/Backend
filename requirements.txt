@@ -28,6 +28,7 @@ aiokafka~=0.10.0
 aioboto3~=12.3.0
 
 ipinfo~=4.4.3
+alembic~=1.12.1
 
 python-magic~=0.4.27
 pyAesCrypt~=6.1.1

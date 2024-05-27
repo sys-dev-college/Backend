@@ -1,7 +1,7 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import (
     JSON,
@@ -26,6 +26,9 @@ from app.modules.logs.models import Logs
 from app.modules.notifications.models import Notification
 from app.modules.roles.models import Role
 from app.utils.crud_model_mixin import ModelCRUDMixin
+
+if TYPE_CHECKING:
+    from app.modules.calendar.models import Calendar
 
 
 class UserStatus(enum.IntEnum):
@@ -56,13 +59,18 @@ class User(Base, ModelCRUDMixin):
         server_onupdate=FetchedValue(),
     )
     phone_number: Mapped[Optional[str]] = mapped_column(nullable=True)
-    description: Mapped[Optional[str]] = mapped_column(nullable=True)
     user_avatar_url: Mapped[Optional[str]] = mapped_column(nullable=True)
     role_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         ForeignKey("roles.id", ondelete="SET NULL", onupdate="CASCADE"),
         nullable=True,
         default=None,
         server_default=FetchedValue()
+    )
+    trainer_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True,
+        default=None,
+        server_default=FetchedValue(),
     )
     role: Mapped[Optional["Role"]] = relationship(
         Role,
@@ -90,6 +98,14 @@ class User(Base, ModelCRUDMixin):
         back_populates="user",
         cascade="all",
     )
+    calendars: Mapped[List["Calendar"]] = relationship(
+        "Calendar",
+        back_populates="user",
+    )
+    assigned_calendars: Mapped[List["Calendar"]] = relationship(
+        "Calendar",
+        back_populates="assigner",
+    )
 
     @property
     def is_authenticated(self) -> bool:
@@ -107,41 +123,27 @@ class User(Base, ModelCRUDMixin):
     def user_name(cls):
         return concat(cls.first_name, " ", cls.last_name)
 
+    @classmethod
+    async def get_clients_by_trainer_id(
+            cls,
+            session: AsyncSession,
+            trainer_id: uuid.UUID,
+    ):
+        user_stmt = (
+            select(User)
+            .where(User.trainer_id == trainer_id)
+        )
+        user_result = await session.scalars(user_stmt)
+        result = user_result.unique().all()
 
-    # @classmethod
-    # async def get_clients_by_trainer_id(
-    #     cls,
-    #     session: AsyncSession,
-    #     room_id: uuid.UUID,
-    # ):
-    #     user_stmt = (
-    #         select(User, Role.name)
-    #         .join(
-    #             UserGroupRoom,
-    #             and_(UserGroupRoom.user_id == User.id, UserGroupRoom.room_id == room_id),
-    #         )
-    #         .join(
-    #             Group,
-    #             and_(UserGroupRoom.group_id == Group.id, UserGroupRoom.group_id == Group.id),
-    #             isouter=True,
-    #         )
-    #         .join(Role, Role.id == Group.role_id)
-    #         .options(contains_eager(User.groups))
-    #     )
-    #     user_result = await session.execute(user_stmt)
-    #     result = user_result.unique().all()
-    #
-    #     for index, (user, role) in enumerate(result):
-    #         user.role = role
-    #         result[index] = user
-    #     return result
+        return result
 
     @classmethod
     async def get_user_by_email(
-        cls,
-        session: AsyncSession,
-        email: str,
-        relation_fields_names_to_load: Optional[List[str]] = None,
+            cls,
+            session: AsyncSession,
+            email: str,
+            relation_fields_names_to_load: Optional[List[str]] = None,
     ) -> Optional["User"]:
         user_stmt = select(User).where(User.email == email)
         if relation_fields_names_to_load is not None:
@@ -154,49 +156,6 @@ class User(Base, ModelCRUDMixin):
         if user is None:
             return None
         return user[0]
-
-
-    # @classmethod
-    # async def get_user_role_by_current_user_id(
-    #     cls,
-    #     session: AsyncSession,
-    #     current_user_id: uuid.UUID,
-    #     room_id: uuid.UUID,
-    # ):
-    #     get_role_queryset = (
-    #         select(Role.name)
-    #         .join(Group, Group.role_id == Role.id)
-    #         .join(
-    #             UserGroupRoom,
-    #             and_(
-    #                 UserGroupRoom.group_id == Group.id,
-    #                 UserGroupRoom.room_id == room_id,
-    #                 UserGroupRoom.user_id == current_user_id,
-    #             ),
-    #         )
-    #     )
-    #     result_get_role_queryset = await session.scalar(get_role_queryset)
-    #     return result_get_role_queryset
-
-    # @classmethod
-    # async def get_user_permission_list_by_current_user_id(
-    #     cls,
-    #     session: AsyncSession,
-    #     current_user_id: uuid.UUID,
-    #     room_id: uuid.UUID,
-    # ):
-    #     roles = (
-    #         select(Role.permissions)
-    #         .join(Group, Group.role_id == Role.id)
-    #         .join(UserGroupRoom, UserGroupRoom.group_id == Group.id)
-    #         .where(
-    #             and_(UserGroupRoom.room_id == room_id, UserGroupRoom.user_id == current_user_id)
-    #         )
-    #     )
-    #
-    #     result = await session.execute(roles)
-    #     permissions = result.scalar()
-    #     return permissions
 
 
 class TokenBlacklist(Base):
@@ -214,9 +173,9 @@ class TokenBlacklist(Base):
 
     @classmethod
     async def add_tokens_to_blacklist(
-        cls,
-        session: AsyncSession,
-        access_token: str,
+            cls,
+            session: AsyncSession,
+            access_token: str,
     ):
         token_blacklist = cls(access_token=access_token)
         session.add(token_blacklist)

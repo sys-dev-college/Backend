@@ -26,17 +26,8 @@ class Logs(Base):
         server_default=FetchedValue(),
     )
     details: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    document_name: Mapped[Optional[str]] = mapped_column(nullable=True)
     user_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"),
-        nullable=True,
-    )
-    room_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        ForeignKey("rooms.id", onupdate="CASCADE", ondelete="CASCADE"),
-        nullable=True,
-    )
-    document_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        ForeignKey("documents.id", onupdate="CASCADE", ondelete="SET NULL"),
         nullable=True,
     )
     session_id: Mapped[Optional[uuid.UUID]] = mapped_column(

@@ -8,19 +8,13 @@ from sqlalchemy.engine import Connection
 from alembic import context
 from alembic.script import write_hooks
 from app.database.session import Base, async_engine
-from app.modules.agreement.models import *  # noqa: F403
+from app.modules.calendar.models import *  # noqa: F403
 from app.modules.chats.models import *  # noqa: F403
-from app.modules.documents.models import *  # noqa: F403
-from app.modules.documents_temp_link.models import *  # noqa: F403
-from app.modules.folders.models import *  # noqa: F403
-from app.modules.groups.models import *  # noqa: F403
 from app.modules.invites.models import *  # noqa: F403
 from app.modules.logs.models import *  # noqa: F403
-from app.modules.notes.models import *  # noqa: F403
 from app.modules.notifications.models import *  # noqa: F403
-from app.modules.organizations.models import *  # noqa: F403
 from app.modules.roles.models import *  # noqa: F403
-from app.modules.rooms.models import *  # noqa: F403
+from app.modules.tasks.models import *  # noqa: F403
 from app.modules.user_sessions.models import *  # noqa: F403
 from app.modules.users.models import *  # noqa: F403
 
