@@ -6,11 +6,6 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, RootModel
 
 
-class InviteType(str, Enum):
-    master = "master"
-    common = "common"
-
-
 class AuthCredentials(BaseModel):
     email: EmailStr
     password: str
@@ -23,9 +18,6 @@ class UserBase(BaseModel):
     first_name: Optional[str]
     last_name: Optional[str]
     phone_number: Optional[str]
-    invite_type: Optional[InviteType] = None
-    room_id: Optional[UUID] = None
-    group_id: Optional[UUID] = None
 
 
 class UserOut(BaseModel):
@@ -124,3 +116,15 @@ class EmailRestorePassword(BaseModel):
 class RestorePassword(BaseModel):
     user_id: uuid.UUID
     password: str
+
+
+class UserParamIn(BaseModel):
+    name: str
+    amount: str
+
+
+class UserParamOut(UserParamIn):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    user: UserShort

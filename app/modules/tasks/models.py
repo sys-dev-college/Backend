@@ -1,4 +1,5 @@
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     FetchedValue,
@@ -11,8 +12,10 @@ from sqlalchemy.orm import (
 )
 
 from app.database.session import Base
-from app.modules.calendar.models import Calendar
 from app.utils.crud_model_mixin import ModelCRUDMixin
+
+if TYPE_CHECKING:
+    from app.modules.calendar.models import Calendar
 
 
 class Task(Base, ModelCRUDMixin):

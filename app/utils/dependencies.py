@@ -43,27 +43,6 @@ async def get_log_context(request: Request):
     return request.state.log_context
 
 
-# # interface for Depends
-# async def get_user_role(
-#     current_user: User = Depends(get_current_user),
-#     session: AsyncSession = Depends(get_session),
-# ):
-#     roles = await _extract_roles_by_user(current_user, session)
-#     return roles
-
-
-# the function made private for convenient testing
-# async def _extract_roles_by_user(user: User, session: AsyncSession):
-#     roles_stmt = (
-#         select(Role)
-#         .join(UserRole, UserRole.user_id == User.id)  # noqa.
-#         .where(UserGroupRoom.user_id == user.id)
-#     )
-#
-#     roles = await session.scalars(roles_stmt)
-#     return roles.all()
-
-
 def generate_request_context(request: Request):
     return {"request": request}
 

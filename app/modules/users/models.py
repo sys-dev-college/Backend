@@ -106,6 +106,10 @@ class User(Base, ModelCRUDMixin):
         "Calendar",
         back_populates="assigner",
     )
+    user_params: Mapped[List["UserParam"]] = relationship(
+        "UserParam",
+        back_populates="user",
+    )
 
     @property
     def is_authenticated(self) -> bool:
@@ -242,3 +246,21 @@ class UserErrors(Base):
         ForeignKey("error_types.error_type_id", ondelete="CASCADE", onupdate="CASCADE"),
     )
     error_type: Mapped["ErrorTypes"] = relationship("ErrorTypes", back_populates="user_errors")
+
+
+class UserParam(Base):
+    __tablename__ = "user_params"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4, server_default=FetchedValue())
+    name: Mapped[str] = mapped_column(nullable=False)
+    amount: Mapped[int] = mapped_column(nullable=False)
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=FetchedValue(),)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey(
+            "users.id",
+            ondelete="CASCADE",
+            onupdate="CASCADE"
+        ),
+        nullable=False
+    )
+    user: Mapped["User"] = relationship("User", back_populates="user_params")
