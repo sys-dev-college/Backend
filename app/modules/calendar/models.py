@@ -16,10 +16,10 @@ from sqlalchemy.orm import (
 )
 
 from app.database.session import Base
-from app.modules.tasks.models import Task
 from app.utils.crud_model_mixin import ModelCRUDMixin
 
 if TYPE_CHECKING:
+    from app.modules.tasks.models import Task
     from app.modules.users.models import User
 
 
@@ -44,6 +44,7 @@ class Calendar(Base, ModelCRUDMixin):
         ),
         nullable=False
     )
+    title: Mapped[str] = mapped_column(nullable=True)
     scheduled: Mapped[datetime.datetime] = mapped_column(
         nullable=True,
         default=func.now(),
