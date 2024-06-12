@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, RootModel
@@ -16,9 +16,21 @@ class CalendarOut(BaseModel):
     scheduled: datetime
     type: CalendarType
     tasks: Optional[List[TaskOut]] = []
-    assigner: UserShort
-    user: UserShort
+    assigner: Optional[UserShort] = None
+    user: Optional[UserShort] = None
 
 
 class CalendarList(RootModel):
     root: List[CalendarOut]
+
+
+class CalendarFilter(BaseModel):
+    user_id: Optional[uuid.UUID] = None
+    scheduled: date
+
+
+class CalendarIn(BaseModel):
+    user_id: uuid.UUID
+    scheduled: datetime
+    title: str
+    type: CalendarType
