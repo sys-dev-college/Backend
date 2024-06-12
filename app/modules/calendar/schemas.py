@@ -14,6 +14,7 @@ class CalendarOut(BaseModel):
 
     id: uuid.UUID
     scheduled: datetime
+    title: str
     type: CalendarType
     tasks: Optional[List[TaskOut]] = []
     assigner: Optional[UserShort] = None

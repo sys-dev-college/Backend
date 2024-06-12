@@ -4,7 +4,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.strategy_options import joinedload
 
-from app.modules.calendar.models import Calendar, Task
+from app.modules.tasks.models import Task
 from app.modules.tasks.schemas import TaskIn
 
 
