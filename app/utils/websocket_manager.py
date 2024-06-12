@@ -50,14 +50,6 @@ class WebSocketManager:
 
         async with SessionManager() as session:
             user = await session.scalar(select(User).where(User.id == user_id))
-            notification_message = f"{user.user_name} новое сообщение в чате"
-            # await create_notification_for_room_members_or_single_user(
-            #     session=session,
-            #     current_user_id=user_id,
-            #     notification_message=notification_message,
-            #     notification_type=NotificationType.ROOM_CHAT,
-            #     send_for_single_user=True,
-            # )
         return {
             "user_name": user.user_name,
             "email": user.email,

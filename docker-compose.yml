@@ -6,6 +6,11 @@ services:
     image: postgres:16.2-alpine
     volumes:
       - postgres_data:/var/lib/postgresql@16/data/
+    healthcheck:
+      test: pg_isready -h localhost -U postgres
+      interval: 5s
+      timeout: 10s
+      retries: 120
     networks:
       - dockernet
     ports:
@@ -32,7 +37,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 networks:
   dockernet:

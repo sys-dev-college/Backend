@@ -1,12 +1,16 @@
+from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request
+import aiofiles
+from fastapi import APIRouter, Body, Depends, Form, HTTPException, Request
+from fastapi.responses import HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.middlewares.request_processing import RequestProcessingRoute
 from app.modules.users import logic, schemas
 from app.modules.users.models import TokenBlacklist, User
+from app.modules.users.schemas import UserParamIn, UserParamOut
 from app.utils.dependencies import get_current_user, get_session
 from app.utils.response_helper import DefaultResponse
 
@@ -22,23 +26,17 @@ async def register_user(
     user: schemas.UserBase,
     session: AsyncSession = Depends(get_session),
 ):
-    # DO NOT REMOVE THIS CODE !!!
-    # if user.is_accepted_agreement is False:
-    #     return JSONResponse(
-    #         content={"success": False, "message": "Ошибка регистрации. Соглашение не принято"},
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #     )
     user_exists = await User.get_user_by_email(session, user.email)
     if user_exists is not None:
         raise HTTPException(
             status_code=400,
             detail={"status": "False", "message": "Email already registered"},
         )
-    # result = await logic.check_invite_expiration_time_of_user_and_create_user_object(
-    #     session=session,
-    #     user=user,
-    # )
-    # return result
+    result = await logic.register_user(
+        session=session,
+        user=user,
+    )
+    return result
 
 
 @user_router.post("/login/", response_model=schemas.Token)
@@ -66,7 +64,6 @@ async def user_exists(
 
 @user_router.get("/me/")
 async def get_me(
-    session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
     data = current_user.to_dict()
@@ -112,18 +109,20 @@ async def create_user_fingerprint_view(
     return result
 
 
-@user_router.get("/register/accept/")
+@user_router.get("/register/accept/{user_id}/")
 async def user_activate_view(
     user_id: UUID,
     session: AsyncSession = Depends(get_session),
 ):
-    user = await logic.user_activate_logic(
+    await logic.user_activate_logic(
         session=session,
         user_id=user_id,
     )
-    access_token = await logic.create_access_token(user)
-    refresh_token = await logic.create_refresh_token(user)
-    return {"access_token": access_token, "refresh_token": refresh_token}
+    response: str = ""
+    async with aiofiles.open("./res/register_success.html", "r+", encoding="utf-8") as response_file:
+        response = await response_file.read()
+
+    return HTMLResponse(content=response, status_code=200)
 
 
 @user_router.post("/send-restore/")
@@ -160,3 +159,28 @@ async def restore_password_view(
         restore_data=restore_data,
     )
     return DefaultResponse(success=True, message="Password restored")
+
+
+@user_router.post("/param/")
+async def insert_param(
+    user_param: UserParamIn,
+    user_id: Optional[UUID] = Body(None),
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    user = current_user
+    if user_id:
+        user_result = await session.scalar(select(User).where(User.id == user_id))
+        if not user_result:
+            return DefaultResponse(
+                success=False,
+                status_code=400,
+                message="User doesn't exist"
+            )
+        user = user_result
+    user_param_instance = await logic.create_user_param_instance(
+        session=session,
+        user_param=user_param,
+        user=user,
+    )
+    return UserParamOut.model_validate(user_param_instance)

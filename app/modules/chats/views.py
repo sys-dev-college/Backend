@@ -9,14 +9,11 @@ from app.modules.chats.logic import (
     create_chat_instance,
     get_chat_by_id,
     get_chats_by_room_id,
-    get_existed_chat,
     get_messages_by_chat_id,
 )
-from app.modules.chats.models import Chat
 from app.modules.chats.schemas import CreateChatSchema
 from app.modules.users.models import User
 from app.utils.dependencies import get_current_user, get_session, get_websocket_manager
-from app.utils.response_helper import DefaultResponse
 
 chat_router = APIRouter(
     tags=["Chats"],
@@ -32,21 +29,6 @@ async def create_chat(
     current_user: User = Depends(get_current_user),
     websocket_manager=Depends(get_websocket_manager),
 ):
-    existed_chat = await get_existed_chat(
-        session,
-        Chat.title == chat_data.title,
-        Chat.room_id == chat_data.room_id,
-        Chat.entity_type == chat_data.entity_type,
-    )
-
-    if existed_chat:
-        # Or return existed_chat. Depends on requirements
-        return DefaultResponse(
-            success=False,
-            status_code=400,
-            message="Chat already exists",
-        )
-
     return await create_chat_instance(
         session=session,
         current_user=current_user,

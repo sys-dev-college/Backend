@@ -9,7 +9,6 @@ from app.config import settings
 from app.middlewares.content_length import RequestSizeLimitMiddleware
 from app.middlewares.database_session import UniversalDBSessionMiddleware
 from app.middlewares.get_current_user import OAuth2Backend
-from app.modules.invites.views import router as invites_router
 from app.modules.logs.views import log_router
 from app.modules.notifications.views import notification_router
 from app.modules.user_sessions.views import websocket_rout
@@ -17,10 +16,6 @@ from app.modules.users.views import user_router
 from app.utils.websocket_manager import websocket_manager
 
 middlewares = [
-    # NOTE(axd1x8a): The order of middlewares is important
-    # If you want to add new middleware, ask me first
-    # or try to write it as ASGI middleware or else you will break whole app
-    # good luck :)
     Middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -44,7 +39,6 @@ middlewares = [
 
 # API Endpoints
 routes = [
-    invites_router,
     user_router,
     log_router,
     websocket_rout,

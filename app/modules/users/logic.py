@@ -1,15 +1,18 @@
 import base64
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import String, and_, cast, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.responses import JSONResponse
 
 from app.config import settings
+from app.modules.invites.models import Invite
 from app.modules.smpt_sender.sender import email_sender
 from app.modules.users import schemas
-from app.modules.users.models import User, UserFingerprint, UserStatus
+from app.modules.users.models import User, UserFingerprint, UserParam, UserStatus
+from app.modules.users.schemas import UserBase, UserParamIn
 from app.utils import jwt_utils
 from app.utils.hashing import Hasher
 from app.utils.save_user_error_log import save_user_error_log_to_table
@@ -148,9 +151,9 @@ async def send_restore_password_email_logic(
         subject="Восстановление пароля",
         body_text=f"""
             \nЗдравствуйте,
-            \nчтобы восстановить пароль в Athena.VDR перейдите по ссылке: {link}
-            \nЕсли Вы не запрашивали восстановление пароля для входа на сайт: Athena.VDR {settings.INVITE_PROTOCOL}://{settings.INVITE_DOMAIN}/login игнорируйте данное письмо.
-            \nС уважением, команда Athena.VDR
+            \nчтобы восстановить пароль в ItFits перейдите по ссылке: {link}
+            \nЕсли Вы не запрашивали восстановление пароля для входа на сайт: ItFits {settings.INVITE_PROTOCOL}://{settings.INVITE_DOMAIN}/login игнорируйте данное письмо.
+            \nС уважением, команда ItFits
             """,
     )
 
@@ -165,3 +168,47 @@ async def restore_password_logic(
         filters={"id": restore_data.user_id},
         attributes_vs_values={"hashed_password": hashed_password},
     )
+
+
+async def register_user(session: AsyncSession, user: UserBase):
+    queryset = select(Invite.created_at).where(Invite.email == user.email)
+    invite_result = (await session.execute(queryset)).scalar()
+    current_time = datetime.now()
+    if invite_result is not None:
+        time_difference = current_time - invite_result
+
+        if time_difference > timedelta(hours=72):
+            return JSONResponse(
+                content={
+                    "message": "Invite has expired",
+                    "success": False,
+                },
+                status_code=400,
+            )
+
+    user_data = await create_user(session, user)
+    link = f"{settings.INVITE_PROTOCOL}://{settings.INVITE_DOMAIN}/api/users/register/accept/{user_data.id}/"
+    await email_sender(
+        email=user.email,
+        subject="Подтверждение регистрации",
+        body_text=f"""
+               \nУважаемый {user.email},
+               \nДля завершения регистрации в системе ItFits перейдите по ссылке: {link}
+               \nС уважением, команда ItFits
+               """,
+    )
+    return {
+        "status": "True",
+        "data": schemas.UserOut(
+            id=user_data.id,
+            email=user_data.email,
+        ),
+    }
+
+
+async def create_user_param_instance(session: AsyncSession, user_param: UserParamIn, user: User):
+    user_param_instance = UserParam(**user_param.model_dump(), user=user, user_id=user.id)
+    session.add(user_param_instance)
+    await session.commit()
+    await session.refresh(user_param_instance)
+    return user_param_instance
