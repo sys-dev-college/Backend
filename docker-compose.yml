@@ -1,23 +1,6 @@
 version: '3.7'
 
 services:
-  db:
-    container_name: itfits_db_local
-    image: postgres:16.2-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql@16/data/
-    healthcheck:
-      test: pg_isready -h localhost -U postgres
-      interval: 5s
-      timeout: 10s
-      retries: 120
-    networks:
-      - dockernet
-    ports:
-      - "5432:5432"
-    env_file:
-      - .env
-
   backend:
     container_name: ${COMPOSE_PROJECT_NAME}.itfits-backend
     restart: unless-stopped
@@ -36,9 +19,6 @@ services:
       - storage:/app/storage
     env_file:
       - .env
-    depends_on:
-      db:
-        condition: service_healthy
 
 networks:
   dockernet:
