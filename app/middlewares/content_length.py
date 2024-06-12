@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, ClassVar
 from fastapi import HTTPException
 from fastapi.requests import HTTPConnection
 
+from app.utils.dependencies import _RestrictedFile
+
 if TYPE_CHECKING:
     from fastapi.routing import APIRoute
     from starlette.types import ASGIApp, Message, Receive, Scope, Send

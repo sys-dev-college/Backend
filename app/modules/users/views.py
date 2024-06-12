@@ -1,3 +1,4 @@
+from os import path
 from typing import Optional
 from uuid import UUID
 
@@ -119,7 +120,9 @@ async def user_activate_view(
         user_id=user_id,
     )
     response: str = ""
-    async with aiofiles.open("./res/register_success.html", "r+", encoding="utf-8") as response_file:
+
+    parent_dir = path.dirname(path.abspath(__file__))
+    async with aiofiles.open(path.join(parent_dir, 'res', 'register_success.html'), "r+", encoding="utf-8") as response_file:
         response = await response_file.read()
 
     return HTMLResponse(content=response, status_code=200)
