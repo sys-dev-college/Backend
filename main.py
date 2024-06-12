@@ -9,8 +9,10 @@ from app.config import settings
 from app.middlewares.content_length import RequestSizeLimitMiddleware
 from app.middlewares.database_session import UniversalDBSessionMiddleware
 from app.middlewares.get_current_user import OAuth2Backend
+from app.modules.calendar.views import calendar_router
 from app.modules.logs.views import log_router
 from app.modules.notifications.views import notification_router
+from app.modules.tasks.views import task_router
 from app.modules.user_sessions.views import websocket_rout
 from app.modules.users.views import user_router
 from app.utils.websocket_manager import websocket_manager
@@ -43,6 +45,8 @@ routes = [
     log_router,
     websocket_rout,
     notification_router,
+    calendar_router,
+    task_router,
 ]
 
 
