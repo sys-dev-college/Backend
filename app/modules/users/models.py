@@ -1,7 +1,7 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING, List, Optional
+from typing import List, Optional
 
 from sqlalchemy import (
     JSON,
@@ -22,13 +22,11 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql.functions import concat
 
 from app.database.session import Base
+from app.modules.calendar.models import Calendar
 from app.modules.logs.models import Logs
 from app.modules.notifications.models import Notification
 from app.modules.roles.models import Role
 from app.utils.crud_model_mixin import ModelCRUDMixin
-
-if TYPE_CHECKING:
-    from app.modules.calendar.models import Calendar
 
 
 class UserStatus(enum.IntEnum):
@@ -102,10 +100,10 @@ class User(Base, ModelCRUDMixin):
         "Calendar",
         back_populates="user",
     )
-    assigned_calendars: Mapped[List["Calendar"]] = relationship(
-        "Calendar",
-        back_populates="assigner",
-    )
+    # assigned_calendars: Mapped[List["Calendar"]] = relationship(
+    #     "Calendar",
+    #     back_populates="assigner",
+    # )
     user_params: Mapped[List["UserParam"]] = relationship(
         "UserParam",
         back_populates="user",
