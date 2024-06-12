@@ -1,9 +1,11 @@
+import base64
+import re
 from os import path
 from typing import Optional
 from uuid import UUID
 
 import aiofiles
-from fastapi import APIRouter, Body, Depends, Form, HTTPException, Request
+from fastapi import APIRouter, Body, Depends, Form, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,8 +26,8 @@ user_router = APIRouter(
 
 @user_router.post("/register/")
 async def register_user(
-    user: schemas.UserBase,
-    session: AsyncSession = Depends(get_session),
+        user: schemas.UserBase,
+        session: AsyncSession = Depends(get_session),
 ):
     user_exists = await User.get_user_by_email(session, user.email)
     if user_exists is not None:
@@ -42,8 +44,8 @@ async def register_user(
 
 @user_router.post("/login/", response_model=schemas.Token)
 async def login(
-    credentials: schemas.AuthCredentials,
-    session: AsyncSession = Depends(get_session),
+        credentials: schemas.AuthCredentials,
+        session: AsyncSession = Depends(get_session),
 ):
     user = await logic.authenticate_user(session, credentials.email, credentials.password)
     if not isinstance(user, User):
@@ -55,8 +57,8 @@ async def login(
 
 @user_router.post("/user-exists/")
 async def user_exists(
-    data: schemas.UserExists,
-    session: AsyncSession = Depends(get_session),
+        data: schemas.UserExists,
+        session: AsyncSession = Depends(get_session),
 ):
     if await User.get_user_by_email(session, data.email):
         return schemas.UserExistsOut(user_exists=True)
@@ -65,7 +67,7 @@ async def user_exists(
 
 @user_router.get("/me/")
 async def get_me(
-    current_user: User = Depends(get_current_user),
+        current_user: User = Depends(get_current_user),
 ):
     data = current_user.to_dict()
 
@@ -74,9 +76,9 @@ async def get_me(
 
 @user_router.put("/me/")
 async def update_user_data(
-    user_data: schemas.UserUpdate,
-    session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+        user_data: schemas.UserUpdate,
+        session: AsyncSession = Depends(get_session),
+        current_user: User = Depends(get_current_user),
 ):
     await logic.update_user_data(session, current_user.id, user_data)
     return DefaultResponse(success=True, status_code=200)
@@ -84,8 +86,8 @@ async def update_user_data(
 
 @user_router.post("/logout/")
 async def logout(
-    request: Request,
-    session: AsyncSession = Depends(get_session),
+        request: Request,
+        session: AsyncSession = Depends(get_session),
 ):
     auth = request.headers["Authorization"]
     _, token = auth.split()
@@ -98,9 +100,9 @@ async def logout(
 
 @user_router.post("/fingerprint/")
 async def create_user_fingerprint_view(
-    browser_data: str = Form(),
-    session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+        browser_data: str = Form(),
+        session: AsyncSession = Depends(get_session),
+        current_user: User = Depends(get_current_user),
 ):
     result = await logic.create_user_fingerprint_logic(
         browser_data=browser_data,
@@ -112,8 +114,8 @@ async def create_user_fingerprint_view(
 
 @user_router.get("/register/accept/{user_id}/")
 async def user_activate_view(
-    user_id: UUID,
-    session: AsyncSession = Depends(get_session),
+        user_id: UUID,
+        session: AsyncSession = Depends(get_session),
 ):
     await logic.user_activate_logic(
         session=session,
@@ -122,7 +124,8 @@ async def user_activate_view(
     response: str = ""
 
     parent_dir = path.dirname(path.abspath(__file__))
-    async with aiofiles.open(path.join(parent_dir, 'res', 'register_success.html'), "r+", encoding="utf-8") as response_file:
+    async with (aiofiles.open(path.join(parent_dir, 'res', 'register_success.html'), "r+", encoding="utf-8")
+                as response_file):
         response = await response_file.read()
 
     return HTMLResponse(content=response, status_code=200)
@@ -130,8 +133,8 @@ async def user_activate_view(
 
 @user_router.post("/send-restore/")
 async def send_restore_password_email_view(
-    email_data: schemas.EmailRestorePassword,
-    session: AsyncSession = Depends(get_session),
+        email_data: schemas.EmailRestorePassword,
+        session: AsyncSession = Depends(get_session),
 ):
     user = await User.get_user_by_email(session, email_data.email)
     if user is None:
@@ -146,10 +149,28 @@ async def send_restore_password_email_view(
     return DefaultResponse(success=True, message="Email was sent")
 
 
+@user_router.get("/restore-password/")
+async def get_restore_static(
+        user: str = Query(...),
+):
+    user_id = base64.b64decode(user).decode("utf-8")
+    regex_find_user_id = re.compile(r"user_id: null")
+    parent_dir = path.dirname(path.abspath(__file__))
+    async with aiofiles.open(
+            path.join(parent_dir, 'res', 'reset_password.html'),
+            "r+",
+            encoding="utf-8"
+    ) as file:
+        response = await file.read()
+        response = regex_find_user_id.sub(f"user_id: \"{user_id}\"", response)
+
+    return HTMLResponse(content=response, status_code=200)
+
+
 @user_router.post("/restore/")
 async def restore_password_view(
-    restore_data: schemas.RestorePassword,
-    session: AsyncSession = Depends(get_session),
+        restore_data: schemas.RestorePassword,
+        session: AsyncSession = Depends(get_session),
 ):
     user = (await session.execute(select(User).where(User.id == restore_data.user_id))).scalar()
     if not user:
@@ -161,15 +182,15 @@ async def restore_password_view(
         session=session,
         restore_data=restore_data,
     )
-    return DefaultResponse(success=True, message="Password restored")
+    return DefaultResponse(success=True, message="Password restored", status_code=200)
 
 
 @user_router.post("/param/")
 async def insert_param(
-    user_param: UserParamIn,
-    user_id: Optional[UUID] = Body(None),
-    session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+        user_param: UserParamIn,
+        user_id: Optional[UUID] = Body(None),
+        session: AsyncSession = Depends(get_session),
+        current_user: User = Depends(get_current_user),
 ):
     user = current_user
     if user_id:
