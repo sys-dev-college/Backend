@@ -145,7 +145,7 @@ async def send_restore_password_email_logic(
     user_id: uuid.UUID,
 ):
     encoded_user_id = base64.b64encode(str(user_id).encode("utf-8")).decode()
-    link = f"{settings.INVITE_PROTOCOL}://{settings.INVITE_DOMAIN}/users/restore-password/user={encoded_user_id}"
+    link = f"{settings.INVITE_PROTOCOL}://{settings.INVITE_DOMAIN}/users/restore-password/?user={encoded_user_id}"
     await email_sender(
         email=email,
         subject="Восстановление пароля",
