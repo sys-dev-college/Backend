@@ -16,10 +16,10 @@ from sqlalchemy.orm import (
 )
 
 from app.database.session import Base
+from app.modules.tasks.models import Task
 from app.utils.crud_model_mixin import ModelCRUDMixin
 
 if TYPE_CHECKING:
-    from app.modules.tasks.models import Task
     from app.modules.users.models import User
 
 
@@ -50,11 +50,11 @@ class Calendar(Base, ModelCRUDMixin):
         server_default=FetchedValue(),
     )
     assigner_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey(
-            "users.id",
-            onupdate="CASCADE",
-            ondelete="CASCADE",
-        ),
+        # ForeignKey(
+        #     "users.id",
+        #     onupdate="CASCADE",
+        #     ondelete="CASCADE",
+        # ),
         nullable=True
     )
     type: Mapped[CalendarType] = mapped_column(
@@ -68,10 +68,12 @@ class Calendar(Base, ModelCRUDMixin):
     user: Mapped["User"] = relationship(
         "User",
         back_populates="calendars",
+        foreign_keys=[user_id]
     )
-    assigner: Mapped["User"] = relationship(
-        "User",
-        back_populates="assigned_calendars"
-    )
+    # assigner: Mapped["User"] = relationship(
+    #     "User",
+    #     back_populates="assigned_calendars",
+    #     foreign_keys=[assigner_id]
+    # )
 
 

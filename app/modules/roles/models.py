@@ -1,10 +1,14 @@
 import uuid
+from typing import TYPE_CHECKING, List
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.session import Base
+
+if TYPE_CHECKING:
+    from app.modules.users.models import User
 
 
 class Role(Base):
@@ -15,6 +19,11 @@ class Role(Base):
         default=uuid.uuid4,
     )
     name: Mapped[str] = mapped_column()
+
+    users: Mapped[List["User"]] = relationship(
+        "User",
+        back_populates="role",
+    )
 
     @classmethod
     async def get_role_by_name(
