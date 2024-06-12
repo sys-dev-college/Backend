@@ -1,0 +1,22 @@
+version: "3.7"
+
+services:
+  db:
+    container_name: it_fits_db_local
+    image: postgres:14.1-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - dockernet
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+
+networks:
+  dockernet:
+    external:
+      name: dockernet
+
+volumes:
+  postgres_data:

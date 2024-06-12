@@ -1,0 +1,6 @@
+class MultipleRolesForGroupWithinRoom(Exception):
+    ...
+
+
+class NoRolesFoundForGroupWithinARoom(Exception):
+    ...
