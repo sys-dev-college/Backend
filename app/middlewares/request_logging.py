@@ -74,6 +74,7 @@ ROUTES_MAPPING = {
     "/api/tasks/+view": "Получение списка подзадач",
     "/api/tasks/+delete": "Удаление подзадачи",
     "/api/tasks/complete/+update": "Изменение статуса подзадачи",
+    "/api/users/logout/+update": "Выход пользователя из системы",
 }
 
 LIST_OF_ROUTERS = (

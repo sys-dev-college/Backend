@@ -53,7 +53,7 @@ class UserUpdate(BaseModel):
     first_name: Optional[str]
     last_name: Optional[str]
     email: Optional[EmailStr]
-    phone_number: Optional[str]
+    telegram_url: Optional[str]
     description: Optional[str]
 
 
@@ -80,7 +80,7 @@ class UsersWithGroups(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: str
-    phone_number: Optional[str] = None
+    telegram_url: Optional[str] = None
     groups: UserGroupList = Field(serialization_alias="group")
     role: Optional[str] = None
 
