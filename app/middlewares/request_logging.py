@@ -72,7 +72,8 @@ ROUTES_MAPPING = {
     "/api/invites/invite/data+view": "Переход по приглашению",
     "/api/calendars/+view": "Получение списка задач на день",
     "/api/tasks/+view": "Получение списка подзадач",
-    "/api/tasks/+delete": "Удаление подзадачи"
+    "/api/tasks/+delete": "Удаление подзадачи",
+    "/api/tasks/complete/+update": "Изменение статуса подзадачи",
 }
 
 LIST_OF_ROUTERS = (

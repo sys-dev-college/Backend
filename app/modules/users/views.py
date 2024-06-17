@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.middlewares.request_processing import RequestProcessingRoute
 from app.modules.users import logic, schemas
 from app.modules.users.models import TokenBlacklist, User
-from app.modules.users.schemas import UserParamIn, UserParamOut
+from app.modules.users.schemas import UserParamIn, UserParamList, UserParamOut
 from app.utils.dependencies import get_current_user, get_log_context, get_session
 from app.utils.response_helper import DefaultResponse
 
@@ -216,3 +216,23 @@ async def insert_param(
         user=user,
     )
     return UserParamOut.model_validate(user_param_instance)
+
+
+@user_router.get("/param/")
+async def get_user_params(
+        user_id: Optional[UUID] = Body(None),
+        session: AsyncSession = Depends(get_session),
+        current_user: User = Depends(get_current_user),
+):
+    user = current_user
+    if user_id:
+        user_result = await session.scalar(select(User).where(User.id == user_id))
+        if not user_result:
+            return DefaultResponse(
+                success=False,
+                status_code=400,
+                message="User doesn't exist"
+            )
+        user = user_result
+    user_param_instances = await logic.get_user_param_instances(session=session, user=user)
+    return UserParamList.model_validate(user_param_instances)

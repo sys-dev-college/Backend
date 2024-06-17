@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 from sqlalchemy import String, and_, cast, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.strategy_options import joinedload
 from starlette.responses import JSONResponse
 
 from app.config import settings
@@ -220,3 +221,13 @@ async def create_user_param_instance(session: AsyncSession, user_param: UserPara
     await session.commit()
     await session.refresh(user_param_instance)
     return user_param_instance
+
+
+async def get_user_param_instances(session: AsyncSession, user: User):
+    user_param_instances = await session.scalars(
+        select(UserParam)
+        .where(UserParam.user_id == user.id)
+        .group_by(UserParam.name)
+        .options(joinedload(UserParam.user))
+    )
+    return user_param_instances

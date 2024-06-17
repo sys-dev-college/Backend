@@ -56,7 +56,7 @@ class User(Base, ModelCRUDMixin):
         server_default=FetchedValue(),
         server_onupdate=FetchedValue(),
     )
-    phone_number: Mapped[Optional[str]] = mapped_column(nullable=True)
+    telegram_url: Mapped[Optional[str]] = mapped_column(nullable=True)
     user_avatar_url: Mapped[Optional[str]] = mapped_column(nullable=True)
     role_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         ForeignKey("roles.id", ondelete="SET NULL", onupdate="CASCADE"),
