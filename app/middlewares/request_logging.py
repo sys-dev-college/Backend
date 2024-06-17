@@ -64,13 +64,15 @@ async def get_websocket_session(request: Request) -> Optional[Session]:
 
 ROUTES_MAPPING = {
     "/api/users/me/+view": "Получение данных о пользователе",
-    "/api/organizations/upload/+create": "Загрузка файлов организации",
     "/api/invites/invite/+create": "Создание приглашения",
     "/api/invites/invite/data/+view": "Получение данных из инвайта",
     "/api/users/register/+create": "Регистрация пользователя",
     "/api/users/login/+create": "Авторизация пользователя",
     "/api/users/me/+update": "Обновление данных пользователя",
     "/api/invites/invite/data+view": "Переход по приглашению",
+    "/api/calendars/+view": "Получение списка задач на день",
+    "/api/tasks/+view": "Получение списка подзадач",
+    "/api/tasks/+delete": "Удаление подзадачи"
 }
 
 LIST_OF_ROUTERS = (

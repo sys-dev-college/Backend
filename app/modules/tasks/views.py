@@ -8,6 +8,7 @@ from app.modules.tasks.logic import (
     create_task_instance,
     delete_task_logic,
     get_task_instances,
+    update_task_status_logic,
 )
 from app.modules.tasks.schemas import TaskIn, TaskList, TaskOut
 from app.utils.dependencies import get_session
@@ -52,3 +53,13 @@ async def delete_task(
         message="Task was deleted successfully",
         status_code=200
     )
+
+
+@task_router.post("/complete/")
+async def update_task_status(
+        task_id: uuid.UUID,
+        completed: bool,
+        session: AsyncSession = Depends(get_session),
+):
+    task = await update_task_status_logic(session=session, task_id=task_id, completed=completed)
+    return TaskOut.model_validate(task)
