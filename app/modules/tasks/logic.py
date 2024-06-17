@@ -4,6 +4,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.strategy_options import joinedload
 
+from app.modules.calendar.models import Calendar
 from app.modules.tasks.models import Task
 from app.modules.tasks.schemas import TaskIn
 
@@ -38,3 +39,12 @@ async def delete_task_logic(session: AsyncSession, task_id: uuid.UUID):
         delete(Task)
         .where(Task.id == task_id)
     )
+
+
+async def update_task_status_logic(session: AsyncSession, task_id: uuid.UUID, completed: bool):
+    task = await session.scalar(select(Task).where(Task.id == task_id))
+    task.completed = completed
+    session.add(task)
+    await session.commit()
+    await session.refresh(task)
+    return task

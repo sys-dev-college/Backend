@@ -4,7 +4,12 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.middlewares.request_processing import RequestProcessingRoute
-from app.modules.calendar.logic import create_calendar_instance, get_calendar, delete_calendar_logic
+from app.modules.calendar.logic import (
+    create_calendar_instance,
+    delete_calendar_logic,
+    get_calendar,
+    get_trainer_calendar,
+)
 from app.modules.calendar.schemas import CalendarFilter, CalendarIn, CalendarList, CalendarOut
 from app.modules.users.models import User
 from app.utils.dependencies import get_current_user, get_session
@@ -41,6 +46,18 @@ async def get_calendars(
     if not data.user_id:
         data.user_id = current_user.id
     calendars_obj = await get_calendar(session=session, data=data)
+    return CalendarList.model_validate(calendars_obj)
+
+
+@calendar_router.post("/trainer/tasks/")
+async def get_trainer_calendars(
+        data: CalendarFilter,
+        session: AsyncSession = Depends(get_session),
+        current_user: User = Depends(get_current_user),
+):
+    if not data.user_id:
+        data.user_id = current_user.id
+    calendars_obj = await get_trainer_calendar(session=session, data=data)
     return CalendarList.model_validate(calendars_obj)
 
 
