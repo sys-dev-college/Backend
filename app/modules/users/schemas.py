@@ -17,7 +17,7 @@ class UserBase(BaseModel):
     is_accepted_agreement: bool = False
     first_name: Optional[str]
     last_name: Optional[str]
-    phone_number: Optional[str]
+    telegram_url: Optional[str]
     is_admin: Optional[bool] = "user"
 
 
@@ -129,3 +129,7 @@ class UserParamOut(UserParamIn):
 
     id: uuid.UUID
     user: UserShort
+
+
+class UserParamList(RootModel):
+    root: List[UserParamOut]

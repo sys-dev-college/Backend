@@ -4,7 +4,7 @@ from app.modules.calendar.models import Calendar
 from app.modules.logs.models import Logs
 from app.modules.roles.models import Role
 from app.modules.tasks.models import Task
-from app.modules.users.models import User
+from app.modules.users.models import User, UserParam
 
 
 class UserAdmin(ModelView, model=User):
@@ -25,4 +25,8 @@ class TaskAdmin(ModelView, model=Task):
 
 class RoleAdmin(ModelView, model=Role):
     column_list = [Role.id, Role.name]
+
+
+class UserParamAdmin(ModelView, model=UserParam):
+    column_list = [UserParam.id, UserParam.user_id, UserParam.name, UserParam.created_at, UserParam.amount]
 
