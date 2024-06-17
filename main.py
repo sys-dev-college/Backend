@@ -6,7 +6,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqladmin import Admin
 from starlette.middleware.authentication import AuthenticationMiddleware
 
-from app.admin.admin import CalendarAdmin, LogAdmin, RoleAdmin, TaskAdmin, UserAdmin
+from app.admin.admin import (
+    CalendarAdmin,
+    LogAdmin,
+    RoleAdmin,
+    TaskAdmin,
+    UserAdmin,
+    UserParamAdmin,
+)
 from app.config import settings
 from app.database.session import async_engine
 from app.middlewares.content_length import RequestSizeLimitMiddleware
@@ -84,3 +91,4 @@ admin.add_view(LogAdmin)
 admin.add_view(CalendarAdmin)
 admin.add_view(TaskAdmin)
 admin.add_view(RoleAdmin)
+admin.add_view(UserParamAdmin)
