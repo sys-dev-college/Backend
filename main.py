@@ -3,9 +3,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
+from sqladmin import Admin
 from starlette.middleware.authentication import AuthenticationMiddleware
 
+from app.admin.admin import CalendarAdmin, LogAdmin, RoleAdmin, TaskAdmin, UserAdmin
 from app.config import settings
+from app.database.session import async_engine
 from app.middlewares.content_length import RequestSizeLimitMiddleware
 from app.middlewares.database_session import UniversalDBSessionMiddleware
 from app.middlewares.get_current_user import OAuth2Backend
@@ -73,3 +76,11 @@ def create_app():
 
 app = create_app()
 
+
+admin = Admin(app, engine=async_engine)
+
+admin.add_view(UserAdmin)
+admin.add_view(LogAdmin)
+admin.add_view(CalendarAdmin)
+admin.add_view(TaskAdmin)
+admin.add_view(RoleAdmin)
