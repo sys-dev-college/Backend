@@ -36,6 +36,10 @@ class UserShort(BaseModel):
     email: str
 
 
+class UserList(RootModel):
+    root: List[UserShort]
+
+
 class Token(BaseModel):
     access_token: str
     refresh_token: str

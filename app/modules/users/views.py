@@ -11,9 +11,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.middlewares.request_processing import RequestProcessingRoute
+from app.modules.roles.models import Role
 from app.modules.users import logic, schemas
 from app.modules.users.models import TokenBlacklist, User
-from app.modules.users.schemas import UserParamIn, UserParamList, UserParamOut
+from app.modules.users.schemas import UserList, UserParamIn, UserParamList, UserParamOut
 from app.utils.dependencies import get_current_user, get_log_context, get_session
 from app.utils.response_helper import DefaultResponse
 
@@ -236,3 +237,11 @@ async def get_user_params(
         user = user_result
     user_param_instances = await logic.get_user_param_instances(session=session, user=user)
     return UserParamList.model_validate(user_param_instances)
+
+
+@user_router.get("/clients/")
+async def get_clients_by_trainer_id(
+        session: AsyncSession = Depends(get_session)
+):
+    user_instances = await session.scalars(select(User).join(Role).where(Role.name != "trainer"))
+    return UserList.model_validate(user_instances)

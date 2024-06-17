@@ -25,5 +25,11 @@ class TaskIn(BaseModel):
     completed: Optional[bool] = False
 
 
+class UpdateTask(BaseModel):
+    name: Optional[str]
+    amount: Optional[int]
+    unit: Optional[str]
+
+
 class TaskFilter(BaseModel):
     calendar_id: uuid.UUID

@@ -8,9 +8,10 @@ from app.modules.tasks.logic import (
     create_task_instance,
     delete_task_logic,
     get_task_instances,
+    update_task_logic,
     update_task_status_logic,
 )
-from app.modules.tasks.schemas import TaskIn, TaskList, TaskOut
+from app.modules.tasks.schemas import TaskIn, TaskList, TaskOut, UpdateTask
 from app.utils.dependencies import get_session
 from app.utils.response_helper import DefaultResponse
 
@@ -62,4 +63,14 @@ async def update_task_status(
         session: AsyncSession = Depends(get_session),
 ):
     task = await update_task_status_logic(session=session, task_id=task_id, completed=completed)
+    return TaskOut.model_validate(task)
+
+
+@task_router.put("/")
+async def update_task(
+    task_id: uuid.UUID,
+    data: UpdateTask,
+    session: AsyncSession = Depends(get_session),
+):
+    task = await update_task_logic(session=session, data=data, task_id=task_id)
     return TaskOut.model_validate(task)

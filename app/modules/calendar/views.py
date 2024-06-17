@@ -9,8 +9,15 @@ from app.modules.calendar.logic import (
     delete_calendar_logic,
     get_calendar,
     get_trainer_calendar,
+    update_calendar_logic,
 )
-from app.modules.calendar.schemas import CalendarFilter, CalendarIn, CalendarList, CalendarOut
+from app.modules.calendar.schemas import (
+    CalendarFilter,
+    CalendarIn,
+    CalendarList,
+    CalendarOut,
+    UpdateCalendar,
+)
 from app.modules.users.models import User
 from app.utils.dependencies import get_current_user, get_session
 from app.utils.response_helper import DefaultResponse
@@ -72,3 +79,13 @@ async def delete_calendar(
         message="Calendar was deleted successfully",
         status_code=200
     )
+
+
+@calendar_router.put("/")
+async def update_calendar(
+        calendar_id: uuid.UUID,
+        data: UpdateCalendar,
+        session: AsyncSession = Depends(get_session),
+):
+    calendar = await update_calendar_logic(session=session, calendar_id=calendar_id, data=data)
+    return CalendarOut.model_validate(calendar)

@@ -1,11 +1,11 @@
 import uuid
 
-from sqlalchemy import Date, and_, cast, delete, select
+from sqlalchemy import Date, and_, cast, delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.strategy_options import joinedload
 
 from app.modules.calendar.models import Calendar
-from app.modules.calendar.schemas import CalendarFilter, CalendarIn
+from app.modules.calendar.schemas import CalendarFilter, CalendarIn, UpdateCalendar
 from app.modules.users.models import User
 
 
@@ -87,3 +87,15 @@ async def delete_calendar_logic(session: AsyncSession, calendar_id: uuid.UUID):
         delete(Calendar)
         .where(Calendar.id == calendar_id)
     )
+
+
+async def update_calendar_logic(session: AsyncSession, calendar_id: uuid.UUID, data: UpdateCalendar):
+    calendar = (await session.execute(
+        update(Calendar)
+        .where(Calendar.id == calendar_id)
+        .values(**data.model_dump(exclude_unset=True))
+        .returning(Calendar)
+        .options(joinedload(Calendar.tasks))
+    )).scalar()
+    calendar.assigner = await session.scalar(select(User).where(User.id == calendar.assigner_id))
+    return calendar

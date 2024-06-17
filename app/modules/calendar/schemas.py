@@ -35,3 +35,9 @@ class CalendarIn(BaseModel):
     scheduled: datetime
     title: str
     type: CalendarType
+
+
+class UpdateCalendar(BaseModel):
+    scheduled: Optional[datetime]
+    title: Optional[str]
+    type: Optional[CalendarType]

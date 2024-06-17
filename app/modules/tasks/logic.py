@@ -1,12 +1,12 @@
 import uuid
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.strategy_options import joinedload
 
 from app.modules.calendar.models import Calendar
 from app.modules.tasks.models import Task
-from app.modules.tasks.schemas import TaskIn
+from app.modules.tasks.schemas import TaskIn, UpdateTask
 
 
 async def get_task_instances(session: AsyncSession, calendar_id: uuid.UUID):
@@ -47,4 +47,14 @@ async def update_task_status_logic(session: AsyncSession, task_id: uuid.UUID, co
     session.add(task)
     await session.commit()
     await session.refresh(task)
+    return task
+
+
+async def update_task_logic(session: AsyncSession, task_id: uuid.UUID, data: UpdateTask):
+    task = await session.execute(
+        update(Task)
+        .where(Task.id == task_id)
+        .values(**data.model_dump(exclude_unset=True))
+        .returning(Task)
+    )
     return task
