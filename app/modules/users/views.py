@@ -14,7 +14,7 @@ from app.middlewares.request_processing import RequestProcessingRoute
 from app.modules.users import logic, schemas
 from app.modules.users.models import TokenBlacklist, User
 from app.modules.users.schemas import UserParamIn, UserParamOut
-from app.utils.dependencies import get_current_user, get_session
+from app.utils.dependencies import get_current_user, get_log_context, get_session
 from app.utils.response_helper import DefaultResponse
 
 user_router = APIRouter(
@@ -46,12 +46,20 @@ async def register_user(
 async def login(
         credentials: schemas.AuthCredentials,
         session: AsyncSession = Depends(get_session),
+        log_context: dict = Depends(get_log_context),
 ):
     user = await logic.authenticate_user(session, credentials.email, credentials.password)
     if not isinstance(user, User):
         raise HTTPException(status_code=400, detail=user)
     access_token = await logic.create_access_token(user)
     refresh_token = await logic.create_refresh_token(user)
+    log_context.update(
+        {
+            "details": {
+                "email": credentials.email,
+            }
+        }
+    )
     return {"access_token": access_token, "refresh_token": refresh_token}
 
 

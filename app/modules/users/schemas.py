@@ -18,6 +18,7 @@ class UserBase(BaseModel):
     first_name: Optional[str]
     last_name: Optional[str]
     phone_number: Optional[str]
+    is_admin: Optional[bool] = "user"
 
 
 class UserOut(BaseModel):

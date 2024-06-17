@@ -37,6 +37,7 @@ class Logs(Base):
     user: Mapped[Optional["User"]] = relationship(
         "User",
         back_populates="logs",
+        lazy="subquery",
     )
     session: Mapped[Optional["Session"]] = relationship(
         "Session",
