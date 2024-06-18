@@ -231,3 +231,9 @@ async def get_user_param_instances(session: AsyncSession, user: User):
         .options(joinedload(UserParam.user))
     )
     return user_param_instances
+
+
+async def get_user_by_id(session: AsyncSession, user_id: uuid.UUID):
+    user = await session.scalar(select(User).where(User.id == user_id))
+
+
