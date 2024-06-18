@@ -35,7 +35,7 @@ async def create_user(session: AsyncSession, user_data: schemas.UserBase) -> Use
         hashed_password=hashed_password,
         first_name=user_data.first_name,
         last_name=user_data.last_name,
-        phone_number=user_data.phone_number,
+        telegram_url=user_data.telegram_url,
     )
     role_name = "user"
     if user_data.is_admin:
