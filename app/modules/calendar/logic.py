@@ -4,7 +4,7 @@ from sqlalchemy import Date, and_, cast, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.strategy_options import joinedload
 
-from app.modules.calendar.models import Calendar
+from app.modules.calendar.models import Calendar, CalendarType
 from app.modules.calendar.schemas import CalendarFilter, CalendarIn
 from app.modules.users.models import User
 
@@ -43,6 +43,7 @@ async def get_trainer_calendar(session: AsyncSession, data: CalendarFilter):
             and_(
                 User.trainer_id == data.user_id,
                 cast(Calendar.scheduled, Date) == data.scheduled,
+                Calendar.type == CalendarType.EXERCISE,
             )
         )
         .order_by(Calendar.scheduled)

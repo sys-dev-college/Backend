@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,4 +19,13 @@ async def get_all_roles(
     session: AsyncSession = Depends(get_session),
 ):
     result = await logic.get_all_roles(session)
+    return result
+
+
+@role_router.get("/{role_id}/")
+async def get_role_by_id(
+    role_id: uuid.UUID,
+    session: AsyncSession = Depends(get_session),
+):
+    result = await logic.get_role_by_id(session=session, role_id=role_id)
     return result

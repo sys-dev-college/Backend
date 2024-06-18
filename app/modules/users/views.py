@@ -1,5 +1,6 @@
 import base64
 import re
+import uuid
 from os import path
 from typing import Optional
 from uuid import UUID
@@ -11,9 +12,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.middlewares.request_processing import RequestProcessingRoute
+from app.modules.roles.models import Role
 from app.modules.users import logic, schemas
 from app.modules.users.models import TokenBlacklist, User
-from app.modules.users.schemas import UserParamIn, UserParamList, UserParamOut
+from app.modules.users.schemas import UserParamIn, UserParamList, UserParamOut, UserRetrieve
 from app.utils.dependencies import get_current_user, get_log_context, get_session
 from app.utils.response_helper import DefaultResponse
 
@@ -76,10 +78,22 @@ async def user_exists(
 @user_router.get("/me/")
 async def get_me(
         current_user: User = Depends(get_current_user),
+        session: AsyncSession = Depends(get_session),
 ):
     data = current_user.to_dict()
+    role_name = await session.scalar(select(Role).where(Role.id == current_user.role_id))
+    data["role_name"] = role_name
 
     return data
+
+
+@user_router.get("/{user_id}/")
+async def get_user_by_id(
+        user_id: uuid.UUID,
+        session: AsyncSession = Depends(get_session),
+):
+    result = await logic.get_user_by_id(session=session, user_id=user_id)
+    return UserRetrieve.model_validate(result)
 
 
 @user_router.put("/me/")
