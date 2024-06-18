@@ -25,7 +25,7 @@ async def get_calendar(session: AsyncSession, data: CalendarFilter):
         )
     )
     calendars_obj = []
-    for calendar in calendars_instances:
+    for calendar in calendars_instances.unique():
         calendar.assigner = await session.scalar(
             select(User).where(User.id == calendar.assigner_id)
         )

@@ -19,6 +19,7 @@ class CalendarOut(BaseModel):
     tasks: Optional[List[TaskOut]] = []
     assigner: Optional[UserShort] = None
     user: Optional[UserShort] = None
+    complete: Optional[bool] = None
 
 
 class CalendarList(RootModel):
