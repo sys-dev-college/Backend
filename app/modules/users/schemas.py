@@ -36,6 +36,10 @@ class UserShort(BaseModel):
     email: str
 
 
+class UserRetrieve(UserShort):
+    telegram_url: str
+
+
 class Token(BaseModel):
     access_token: str
     refresh_token: str
