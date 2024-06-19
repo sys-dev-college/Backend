@@ -15,7 +15,13 @@ from app.middlewares.request_processing import RequestProcessingRoute
 from app.modules.roles.models import Role
 from app.modules.users import logic, schemas
 from app.modules.users.models import TokenBlacklist, User
-from app.modules.users.schemas import UserParamIn, UserParamList, UserParamOut, UserRetrieve
+from app.modules.users.schemas import (
+    UserList,
+    UserParamIn,
+    UserParamList,
+    UserParamOut,
+    UserRetrieve,
+)
 from app.utils.dependencies import get_current_user, get_log_context, get_session
 from app.utils.response_helper import DefaultResponse
 
@@ -91,7 +97,7 @@ async def get_me(
 async def get_user_by_id(
         user_id: uuid.UUID,
         session: AsyncSession = Depends(get_session),
-):
+) -> UserRetrieve:
     result = await logic.get_user_by_id(session=session, user_id=user_id)
     return UserRetrieve.model_validate(result)
 
@@ -250,3 +256,18 @@ async def get_user_params(
         user = user_result
     user_param_instances = await logic.get_user_param_instances(session=session, user=user)
     return UserParamList.model_validate(user_param_instances)
+
+
+@user_router.get("/")
+async def get_user_list(
+    session: AsyncSession = Depends(get_session)
+) -> UserList:
+    trainer_id = await session.scalar(
+        select(User.id)
+        .join(Role, Role.id == User.role_id)
+        .where(Role.name == "trainer")
+    )
+    if not trainer_id:
+        return UserList.model_validate([])
+    result = await session.scalars(select(User).where(User.trainer_id == trainer_id))
+    return UserList.model_validate(result)

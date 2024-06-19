@@ -11,6 +11,7 @@ from starlette.responses import JSONResponse
 from app.config import settings
 from app.modules.invites.models import Invite
 from app.modules.roles.logic import get_role_by_name
+from app.modules.roles.models import Role
 from app.modules.smpt_sender.sender import email_sender
 from app.modules.users import schemas
 from app.modules.users.models import User, UserFingerprint, UserParam, UserStatus
@@ -44,6 +45,13 @@ async def create_user(session: AsyncSession, user_data: schemas.UserBase) -> Use
     if role:
         user.role_id = role.id
         user.role = role
+    if role_name == "user":
+        trainer_id = await session.scalar(
+            select(User.id)
+            .join(Role, Role.id == User.role_id)
+            .where(Role.name == "trainer")
+        )
+        user.trainer_id = trainer_id if trainer_id else None
     session.add(user)
     await session.flush()
     return user
@@ -234,6 +242,4 @@ async def get_user_param_instances(session: AsyncSession, user: User):
 
 
 async def get_user_by_id(session: AsyncSession, user_id: uuid.UUID):
-    user = await session.scalar(select(User).where(User.id == user_id))
-
-
+    return await session.scalar(select(User).where(User.id == user_id))

@@ -27,8 +27,7 @@ async def create_calendar(
     data: CalendarIn,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
-):
-
+) -> CalendarOut:
     calendar_obj = await create_calendar_instance(
         session=session,
         data=data,
@@ -42,7 +41,7 @@ async def get_calendars(
     data: CalendarFilter,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
-):
+) -> CalendarList:
     if not data.user_id:
         data.user_id = current_user.id
     calendars_obj = await get_calendar(session=session, data=data)
@@ -54,7 +53,7 @@ async def get_trainer_calendars(
         data: CalendarFilter,
         session: AsyncSession = Depends(get_session),
         current_user: User = Depends(get_current_user),
-):
+) -> CalendarList:
     if not data.user_id:
         data.user_id = current_user.id
     calendars_obj = await get_trainer_calendar(session=session, data=data)
