@@ -60,6 +60,6 @@ async def update_task_status(
         task_id: uuid.UUID,
         completed: bool,
         session: AsyncSession = Depends(get_session),
-):
+) -> TaskOut:
     task = await update_task_status_logic(session=session, task_id=task_id, completed=completed)
     return TaskOut.model_validate(task)
