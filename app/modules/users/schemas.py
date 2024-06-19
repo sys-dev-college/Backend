@@ -18,7 +18,7 @@ class UserBase(BaseModel):
     first_name: Optional[str]
     last_name: Optional[str]
     telegram_url: Optional[str]
-    is_admin: Optional[bool] = "user"
+    is_admin: Optional[bool] = False
 
 
 class UserOut(BaseModel):
