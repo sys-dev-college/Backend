@@ -2,12 +2,13 @@ import base64
 import re
 import uuid
 from os import path
+from pathlib import Path
 from typing import Optional
 from uuid import UUID
 
 import aiofiles
 from fastapi import APIRouter, Body, Depends, Form, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -271,3 +272,8 @@ async def get_user_list(
         return UserList.model_validate([])
     result = await session.scalars(select(User).where(User.trainer_id == trainer_id))
     return UserList.model_validate(result)
+
+
+@user_router.get("/document/")
+async def get_mobile_app():
+    return FileResponse(path=Path().parent.parent / "app_storage" / "file.apk", status_code=200)
