@@ -40,6 +40,10 @@ class UserRetrieve(UserShort):
     telegram_url: str
 
 
+class UserList(RootModel):
+    root: List[UserRetrieve]
+
+
 class Token(BaseModel):
     access_token: str
     refresh_token: str

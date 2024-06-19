@@ -9,6 +9,7 @@ class TaskOut(BaseModel):
 
     id: uuid.UUID
     name: str
+    amount: int
     unit: str
     completed: bool
 
