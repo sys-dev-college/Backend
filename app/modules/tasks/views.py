@@ -25,7 +25,7 @@ task_router = APIRouter(
 async def create_task(
         data: TaskIn,
         session: AsyncSession = Depends(get_session),
-):
+) -> TaskOut:
     task_obj = await create_task_instance(
         session=session,
         data=data,
@@ -37,7 +37,7 @@ async def create_task(
 async def get_tasks(
         calendar_id: uuid.UUID,
         session: AsyncSession = Depends(get_session),
-):
+) -> TaskList:
     calendars_obj = await get_task_instances(session=session, calendar_id=calendar_id)
     return TaskList.model_validate(calendars_obj)
 
