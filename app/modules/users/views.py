@@ -51,7 +51,7 @@ async def register_user(
     return result
 
 
-@user_router.post("/login/", response_model=schemas.Token)
+@user_router.post("/login/", response_model=schemas.UserLogin)
 async def login(
         credentials: schemas.AuthCredentials,
         session: AsyncSession = Depends(get_session),
@@ -69,7 +69,11 @@ async def login(
             }
         }
     )
-    return {"access_token": access_token, "refresh_token": refresh_token}
+    result = {
+        "token": {"access_token": access_token, "refresh_token": refresh_token},
+        "user": user,
+    }
+    return schemas.UserLogin.model_validate(result)
 
 
 @user_router.post("/user-exists/")

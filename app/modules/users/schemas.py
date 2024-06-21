@@ -49,6 +49,11 @@ class Token(BaseModel):
     refresh_token: str
 
 
+class UserLogin(BaseModel):
+    token: Token
+    user: UserRetrieve
+
+
 class UserExists(BaseModel):
     email: EmailStr
 
