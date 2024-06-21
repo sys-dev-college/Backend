@@ -279,5 +279,5 @@ async def get_user_list(
 
 
 @user_router.get("/document/")
-async def get_mobile_app() -> FileResponse:
+async def get_mobile_app():
     return FileResponse(path=Path().parent.parent / "app_storage" / "file.apk", status_code=200)
