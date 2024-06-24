@@ -58,6 +58,7 @@ async def login(
         log_context: dict = Depends(get_log_context),
 ):
     user = await logic.authenticate_user(session, credentials.email, credentials.password)
+    role = await session.scalar(select(Role).where(Role.id == user.role_id))
     if not isinstance(user, User):
         raise HTTPException(status_code=400, detail=user)
     access_token = await logic.create_access_token(user)
@@ -72,6 +73,7 @@ async def login(
     result = {
         "token": {"access_token": access_token, "refresh_token": refresh_token},
         "user": user,
+        "role": role,
     }
     return schemas.UserLogin.model_validate(result)
 
