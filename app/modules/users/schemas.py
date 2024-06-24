@@ -5,6 +5,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, RootModel
 
+from app.modules.roles.schemas import RoleOut
+
 
 class AuthCredentials(BaseModel):
     email: EmailStr
@@ -52,6 +54,7 @@ class Token(BaseModel):
 class UserLogin(BaseModel):
     token: Token
     user: UserRetrieve
+    role: RoleOut
 
 
 class UserExists(BaseModel):
