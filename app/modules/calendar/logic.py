@@ -70,13 +70,12 @@ async def create_calendar_instance(
 ):
     calendar_instance = Calendar(**data.model_dump())
     session.add(calendar_instance)
-    await session.commit()
-    await session.refresh(calendar_instance)
-    calendar_instance.tasks = []
+    await session.flush()
     calendar_instance.user = await session.scalar(
         select(User)
         .where(User.id == data.user_id)
     )
+    calendar_instance.tasks = []
     calendar_instance.assigner = await session.scalar(
             select(User).where(User.id == current_user.id)
         )
