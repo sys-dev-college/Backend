@@ -114,23 +114,22 @@ async def get_messages_by_chat_id(session: AsyncSession, chat_id: uuid.UUID):
 async def get_chats_by_room_id(session: AsyncSession, room_id: uuid.UUID, current_user: User):
     # TODO (aleksandr): rewrite it in invite logic
 
-    public_chats_type = (ChatEntityType.ROOM, ChatEntityType.DOCUMENT)
 
-    user_in_room = await session.scalar(
-        select(UserGroupRoom).where(
-            and_(
-                UserGroupRoom.room_id == room_id,
-                UserGroupRoom.user_id == current_user.id,
-            )
-        )
-    )
-    if not user_in_room:
-        return DefaultResponse(
-            message="User is not in Room",
-            success=False,
-            status_code=400,
-        )
-
+    # user_in_room = await session.scalar(
+    #     select(UserGroupRoom).where(
+    #         and_(
+    #             UserGroupRoom.room_id == room_id,
+    #             UserGroupRoom.user_id == current_user.id,
+    #         )
+    #     )
+    # )
+    # if not user_in_room:
+    #     return DefaultResponse(
+    #         message="User is not in Room",
+    #         success=False,
+    #         status_code=400,
+    #     )
+    #
     chats = (
         (
             await session.scalars(
@@ -140,13 +139,10 @@ async def get_chats_by_room_id(session: AsyncSession, room_id: uuid.UUID, curren
                 .where(
                     or_(
                         UserChat.user_id == current_user.id,
-                        Chat.entity_type.in_(public_chats_type),
                     )
                 )
-                .where(Chat.room_id == room_id)
                 .order_by(desc(Message.created_at))
                 .options(
-                    joinedload(Chat.room),
                     joinedload(Chat.users),
                 )
             )
@@ -182,7 +178,6 @@ async def add_new_user_in_chat(session: AsyncSession, user_id: uuid.UUID, chat_i
         select(Chat)
         .where(Chat.id == chat_id)
         .options(
-            joinedload(Chat.room),
             joinedload(Chat.users),
         )
     )
