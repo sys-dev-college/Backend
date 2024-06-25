@@ -65,6 +65,7 @@ class Calendar(Base, ModelCRUDMixin):
     tasks: Mapped[List["Task"]] = relationship(
         "Task",
         back_populates="calendar",
+        lazy="noload"
     )
     user: Mapped["User"] = relationship(
         "User",
