@@ -69,6 +69,7 @@ async def create_calendar_instance(
         current_user: User,
 ):
     calendar_instance = Calendar(**data.model_dump())
+    calendar_instance.assigner_id = current_user.id
     session.add(calendar_instance)
     await session.flush()
     calendar_instance.user = await session.scalar(
